@@ -1,249 +1,273 @@
-﻿namespace Restaurante
+﻿using System;
+using System.Collections.Generic;
+
+namespace Restaurante
 {
+    class Item_Pedido
+    {
+        public string Nome { get; set; }
+        public int Quantidade { get; set; }
+    }
 
-    using System;
-    using System.Collections.Generic;
+    class Pedido
+    {
+        public int IdCliente { get; set; }
+        public List<Item_Pedido> Items { get; set; } = new List<Item_Pedido>();
+    }
 
-    // Classe que representa um cliente
     class Cliente
     {
         public int Id { get; set; }
         public string Nome { get; set; }
     }
 
-    // Classe que representa um pedido
-    class Order
-    {
-        public int CustomerId { get; set; }
-        public string ItemNome { get; set; }
-    }
-
     class Program
     {
         static void Main(string[] args)
         {
-            // 1) VETOR de clientes
-            // Definimos um vetor de tamanho fixo para armazenar até 100 clientes
             Cliente[] clientes = new Cliente[100];
-            int clienteCount = 0;  // controla quantos clientes já foram cadastrados
+            int contador = 0;
 
-            // 2) FILA de pedidos
-            // A fila garante que o primeiro pedido que entrar seja o primeiro a ser processado (FIFO)
-            Queue<Order> orderQueue = new Queue<Order>();
+            Queue<Pedido> pedidos = new Queue<Pedido>();
+            Stack<Pedido> cancelados = new Stack<Pedido>();
+            List<Pedido> processados = new List<Pedido>();
 
-            // 3) PILHA de pedidos cancelados
-            // A pilha garante que o último pedido cancelado seja o primeiro a ser refeito (LIFO)
-            Stack<Order> PedidosCancelados = new Stack<Order>();
-
-            List<Order> PedidosProcessados = new List<Order>();
-
-            // 4) MATRIZ do menu
-            // Vamos usar uma matriz de strings para os nomes e uma matriz de decimais para os preços
-            string[,] menuItens = {
-            { "Hambúrguer", "Batata Frita", "Refrigerante", "Salada" }
-        };
-            decimal[,] menuPrecos = {
-            { 15.00m,       7.50m,         5.00m,         9.00m    }
-        };
-            int menuCount = menuItens.GetLength(1);
+            string[] opcoes = { "Hambúrguer", "Batata Frita", "Refrigerante", "Salada" };
+            decimal[] precos = { 15.00m, 7.50m, 5.00m, 9.00m };
 
             while (true)
             {
-                Console.WriteLine("\n--- Sistema de Pedidos ---");
+                Console.Clear();
+                Console.WriteLine("--- Sistema de Pedidos ---");
                 Console.WriteLine("1) Cadastrar Cliente");
                 Console.WriteLine("2) Listar Clientes");
                 Console.WriteLine("3) Listar Menu");
                 Console.WriteLine("4) Fazer Pedido");
-                Console.WriteLine("5) Processar Próximo Pedido");
-                Console.WriteLine("6) Cancelar Pedido Atual");
-                Console.WriteLine("7) Refeita Pedido Cancelado");
+                Console.WriteLine("5) Processar Pedido");
+                Console.WriteLine("6) Cancelar Pedido");
+                Console.WriteLine("7) Refazer Cancelamento");
                 Console.WriteLine("0) Sair");
                 Console.Write("Opção: ");
 
-                int x = 0;
+                if (!int.TryParse(Console.ReadLine(), out int opc)) continue;
 
-                try
-                {
-                    x = int.Parse(Console.ReadLine());
-                    Console.WriteLine();
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("Valor inválido. Por favor, digite um número:" + e.Message);
-                    continue;
-                }
-
-                switch (x)
+                switch (opc)
                 {
                     case 1:
-                        // Cadastrar novo cliente no próximo slot do vetor
-                        if (clienteCount >= clientes.Length)
+                        Console.Clear();
+                        if (contador >= clientes.Length)
                         {
-                            Console.WriteLine("Limites de clientes atingidos, espere o restaurante esvaziar.");
+                            Console.WriteLine("O limite de clientes foi atingido.");
                             break;
                         }
-                        Console.Write("Nome do Cliente: ");
-                        string nome = Console.ReadLine();
-                        clientes[clienteCount] = new Cliente { Id = clienteCount + 1, Nome = nome };
-                        Console.WriteLine($"Cliente cadastrado com o ID = {clientes[clienteCount].Id}");
-                        clienteCount++;
+                        Console.Write("Digite o nome do Cliente: ");
+                        clientes[contador] = new Cliente { Id = contador + 1, Nome = Console.ReadLine() };
+                        Console.WriteLine($"Cliente cadastrado, seu ID é: = {clientes[contador].Id}");
+                        contador++;
                         break;
 
                     case 2:
-                        // LISTAR CLIENTES POR CATEGORIA
-                        //  - Clientes cadastrados: todos os IDs de 1 a clienteCount
-                        //  - Clientes com pedidos em andamento: todos que aparecem em orderQueue
-                        //  - Clientes que ainda não pediram: cadastrados, mas não em orderQueue nem em processedOrders
-                        //  - Clientes com pedidos prontos: que aparecem em processedOrders, mas que não têm pedidos em aberto agora
-
-                        if (clienteCount == 0)
+                        Console.Clear();
+                        if (contador == 0)
                         {
-                            Console.WriteLine("Não há clientes cadastrados.");
+                            Console.WriteLine("Nenhum cliente cadastro no momento.");
                             break;
                         }
-
-                        // Extrair listas de IDs dos pedidos em andamento e prontos
-                        var clientesComPedidosEmAndamento = orderQueue
-                            .Select(o => o.CustomerId)
-                            .Distinct()
-                            .ToList();
-
-                        var clientesComPedidosProntos = PedidosProcessados
-                            .Select(o => o.CustomerId)
-                            .Distinct()
-                            .ToList();
-
-                        Console.WriteLine("=== Clientes Cadastrados ===");
-                        for (int i = 0; i < clienteCount; i++)
+                        List<int> fazendo = new List<int>();
+                        foreach (var o in pedidos)
                         {
+                            if (!fazendo.Contains(o.IdCliente))
+                                fazendo.Add(o.IdCliente);
+                        }
+                        List<int> prontos = new List<int>();
+                        foreach (var o in processados)
+                        {
+                            if (!prontos.Contains(o.IdCliente))
+                                prontos.Add(o.IdCliente);
+                        }
+
+                        Console.WriteLine("--- Lista de Clientes ---");
+                        for (int i = 0; i < contador; i++)
                             Console.WriteLine($"ID {clientes[i].Id} – {clientes[i].Nome}");
-                        }
 
-                        Console.WriteLine("\n=== Clientes com Pedido em Andamento ===");
-                        if (clientesComPedidosEmAndamento.Count == 0)
-                        {
-                            Console.WriteLine("Nenhum.");
-                        }
+                        Console.WriteLine("--- Clientes com Pedido em Andamento ---");
+                        if (fazendo.Count == 0) Console.WriteLine("Nenhum.");
                         else
-                        {
-                            foreach (var cid in clientesComPedidosEmAndamento)
-                            {
-                                var c = clientes[cid - 1];
-                                Console.WriteLine($"ID {c.Id} – {c.Nome}");
-                            }
-                        }
+                            foreach (int id in fazendo)
+                                Console.WriteLine($"ID {id} – {clientes[id - 1].Nome}");
 
-                        Console.WriteLine("\n=== Clientes com Pedido Pronto ===");
-                        if (clientesComPedidosProntos.Count == 0)
+                        Console.WriteLine("--- Clientes com Pedido Pronto ---");
+                        bool pronto = false;
+                        foreach (int id in prontos)
                         {
-                            Console.WriteLine("Nenhum.");
-                        }
-                        else
-                        {
-                            foreach (var cid in clientesComPedidosProntos)
+                            if (!fazendo.Contains(id))
                             {
-                                // Certifique-se de não repetir clientes que ainda têm pedidos em andamento:
-                                if (!clientesComPedidosEmAndamento.Contains(cid))
-                                {
-                                    var c = clientes[cid - 1];
-                                    Console.WriteLine($"ID {c.Id} – {c.Nome}");
-                                }
+                                Console.WriteLine($"ID {id} – {clientes[id - 1].Nome}");
+                                pronto = true;
                             }
                         }
+                        if (!pronto) Console.WriteLine("Nenhum.");
 
-                        Console.WriteLine("\n=== Clientes que ainda não pediram ===");
-                        bool algumSemPedir = false;
-                        for (int i = 0; i < clienteCount; i++)
+                        Console.WriteLine("--- Clientes sem Pedidos ---");
+                        bool sem = false;
+                        for (int i = 0; i < contador; i++)
                         {
-                            int cid = clientes[i].Id;
-                            bool pediuEmAndamento = clientesComPedidosEmAndamento.Contains(cid);
-                            bool jáProcessou = clientesComPedidosProntos.Contains(cid) && !pediuEmAndamento;
-                            if (!pediuEmAndamento && !jáProcessou)
+                            int id = clientes[i].Id;
+                            if (!fazendo.Contains(id) && !prontos.Contains(id))
                             {
-                                Console.WriteLine($"ID {clientes[i].Id} – {clientes[i].Nome}");
-                                algumSemPedir = true;
+                                Console.WriteLine($"ID {id} – {clientes[i].Nome}");
+                                sem = true;
                             }
                         }
-                        if (!algumSemPedir)
-                        {
-                            Console.WriteLine("Nenhum.");
-                        }
+                        if (!sem) Console.WriteLine("Nenhum.");
                         break;
 
                     case 3:
-                        // Exibir matriz de itens e preços
-                        Console.WriteLine("Menu:");
-                        for (int i = 0; i < menuCount; i++)
-                            Console.WriteLine($"{i + 1}) {menuItens[0, i]} – R$ {menuPrecos[0, i]:F2}");
+                        Console.Clear();
+                        Console.WriteLine("-- Menu Principal --");
+                        for (int i = 0; i < opcoes.Length; i++)
+                            Console.WriteLine($"{i + 1}) {opcoes[i]} – R$ {precos[i]:F2}");
+                        Console.WriteLine("-- Opções de Hambúrguer --");
+                        Console.WriteLine("1) x-salada\n2) x-bacon\n3) x-hotdog\n4) x-burguer\n5) x-frango\n6) x-tudo");
+                        Console.WriteLine("\n-- Opções de Refrigerante --");
+                        Console.WriteLine("1) Guaraná\n2) Coca-Cola\n3) Pepsi\n4) Sprite\n5) Fanta Uva\n6) Fanta Laranja");
                         break;
+
 
                     case 4:
-                        // Fazer pedido: enfileirar na fila de pedidos
+                        Console.Clear();
+                        Console.WriteLine("-- Fazer Pedido --");
+                        Console.WriteLine("--- Clientes Cadastrados ---");
+                        for (int i = 0; i < contador; i++)
+                            Console.WriteLine($"ID {clientes[i].Id} – {clientes[i].Nome}");
                         Console.Write("ID do Cliente: ");
-                        if (!int.TryParse(Console.ReadLine(), out int custId) || custId < 1 || custId > clienteCount)
+                        if (!int.TryParse(Console.ReadLine(), out int idcli) || idcli < 1 || idcli > contador)
                         {
-                            Console.WriteLine("Cliente inválido.");
+                            Console.WriteLine("Cliente inexistente.");
                             break;
                         }
-                        Console.Write("Item (número): ");
-                        if (!int.TryParse(Console.ReadLine(), out int itemIdx) || itemIdx < 1 || itemIdx > menuCount)
+                        Pedido novoPedido = new Pedido { IdCliente = idcli };
+                        bool novo = true;
+                        while (novo)
                         {
-                            Console.WriteLine("Item inválido.");
-                            break;
+                            Console.WriteLine("Selecione o pedido (número):");
+                            for (int i = 0; i < opcoes.Length; i++)
+                                Console.WriteLine($"{i + 1}) {opcoes[i]}");
+                            if (!int.TryParse(Console.ReadLine(), out int categoria) || categoria < 1 || categoria > opcoes.Length) continue;
+
+                            string escolhido = opcoes[categoria - 1];
+                            if (escolhido == "Hambúrguer")
+                            {
+                                Console.WriteLine("1) x-salada\n2) x-bacon\n3) x-hotdog\n4) x-burguer\n5) x-frango\n6) x-tudo");
+                                if (int.TryParse(Console.ReadLine(), out int hamburguer) && hamburguer >= 1 && hamburguer <= 6)
+                                {
+                                    string[] op = { "x-salada", "x-bacon", "x-hotdog", "x-burguer", "x-frango", "x-tudo" };
+                                    escolhido = op[hamburguer - 1];
+                                }
+                            }
+                            else if (escolhido == "Refrigerante")
+                            {
+                                Console.WriteLine("1) Guaraná\n2) Coca-Cola\n3) Pepsi\n4) Sprite\n5) Fanta Uva\n6) Fanta Laranja");
+                                if (int.TryParse(Console.ReadLine(), out int refri) && refri >= 1 && refri <= 6)
+                                {
+                                    string[] op = { "Guaraná", "Coca-Cola", "Pepsi", "Sprite", "Fanta Uva", "Fanta Laranja" };
+                                    escolhido = op[refri - 1];
+                                }
+                            }
+
+                            Console.Write("Quantidade: ");
+                            int q = int.TryParse(Console.ReadLine(), out int quant) ? quant : 1;
+                            novoPedido.Items.Add(new Item_Pedido { Nome = escolhido, Quantidade = q });
+                            while (true)
+                            {
+                                Console.Write("Deseja adicionar mais algum item? (s/n): ");
+                                string resposta = Console.ReadLine().Trim().ToLower();
+                                if (resposta == "s")
+                                {
+                                    novo = true;
+                                    break;
+                                }
+                                else if (resposta == "n")
+                                {
+                                    novo = false;
+                                    break;
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Digite apenas 's' ou 'n' ");
+                                }
+                            }
                         }
-                        var pedido = new Order
-                        {
-                            CustomerId = custId,
-                            ItemNome = menuItens[0, itemIdx - 1]
-                        };
-                        orderQueue.Enqueue(pedido);
-                        Console.WriteLine($"Pedido enfileirado: Cliente {custId} – {pedido.ItemNome}");
+                        pedidos.Enqueue(novoPedido);
+                        Console.WriteLine("Pedido adicionado com sucesso.");
                         break;
 
+
                     case 5:
-                        // Processar próximo pedido da fila (desenfileirar)
-                        if (orderQueue.Count == 0)
+                        Console.Clear();
+                        if (pedidos.Count == 0)
                         {
-                            Console.WriteLine("Nenhum pedido na fila.");
+                            Console.WriteLine("Não existe pedido na fila");
                             break;
                         }
-                        var proximo = orderQueue.Dequeue();
-                        Console.WriteLine($"Processando pedido: Cliente {proximo.CustomerId} – {proximo.ItemNome}");
+                        Console.WriteLine("-- Processar Pedido --");
+                        Pedido[] array = pedidos.ToArray();
+                        for (int i = 0; i < array.Length; i++)
+                            Console.WriteLine($"{i + 1}) Cliente {array[i].IdCliente} - Itens: {string.Join(", ", array[i].Items.ConvertAll(it => $"{it.Quantidade}x {it.Nome}"))}");
+                        Console.Write("Escolha índice: ");
+                        if (int.TryParse(Console.ReadLine(), out int sel) && sel >= 1 && sel <= array.Length)
+                        {
+                            Pedido proc = array[sel - 1];
+                            var temp = new Queue<Pedido>();
+                            for (int i = 0; i < array.Length; i++)
+                                if (i != sel - 1) temp.Enqueue(array[i]);
+
+                            pedidos = temp;
+                            processados.Add(proc);
+                            Console.WriteLine("Pedido foi processado");
+                        }
                         break;
 
                     case 6:
-                        // Cancelar o pedido atual: tiramos o da fila e empilhamos na pilha de cancelados
-                        if (orderQueue.Count == 0)
+                        Console.Clear();
+                        if (pedidos.Count == 0)
                         {
-                            Console.WriteLine("Nenhum pedido na fila para cancelar.");
+                            Console.WriteLine("Não existe pedido para ser cancelado");
                             break;
                         }
-                        var cancelar = orderQueue.Dequeue();
-                        PedidosCancelados.Push(cancelar);
-                        Console.WriteLine($"Pedido cancelado: Cliente {cancelar.CustomerId} – {cancelar.ItemNome}");
+                        Console.WriteLine("-- Cancelar Pedido --");
+                        array = pedidos.ToArray();
+                        for (int i = 0; i < array.Length; i++)
+                            Console.WriteLine($"{i + 1}) Cliente {array[i].IdCliente} - Itens: {string.Join(", ", array[i].Items.ConvertAll(it => $"{it.Quantidade}x {it.Nome}"))}");
+                        Console.Write("Escolha índice: ");
+                        if (int.TryParse(Console.ReadLine(), out sel) && sel >= 1 && sel <= array.Length)
+                        {
+                            Pedido canc = array[sel - 1];
+                            var temp2 = new Queue<Pedido>();
+                            for (int i = 0; i < array.Length; i++)
+                                if (i != sel - 1) temp2.Enqueue(array[i]);
+                            pedidos = temp2;
+                            cancelados.Push(canc);
+                            Console.WriteLine("Pedido foi cancelado");
+                        }
                         break;
-
                     case 7:
-                        // Repetir último pedido cancelado: desempilha e enfileira de volta
-                        if (PedidosCancelados.Count == 0)
+                        Console.Clear();
+                        if (cancelados.Count == 0)
                         {
-                            Console.WriteLine("Nenhum pedido cancelado para refazer.");
+                            Console.WriteLine("Não existe pedido cancelado para refazer");
                             break;
                         }
-                        var refazer = PedidosCancelados.Pop();
-                        orderQueue.Enqueue(refazer);
-                        Console.WriteLine($"Refeito pedido cancelado: Cliente {refazer.CustomerId} – {refazer.ItemNome}");
+                        Pedido toRef = cancelados.Pop();
+                        pedidos.Enqueue(toRef);
+                        Console.WriteLine("Pedido para ser refeito adicionado");
                         break;
-
                     case 0:
                         return;
-
-                    default:
-                        Console.WriteLine("Entrada inválida.");
-                        break;
                 }
+                Console.WriteLine("Aperte qualquer tecla para continuar...");
+                Console.ReadKey();
             }
         }
     }
-
 }
