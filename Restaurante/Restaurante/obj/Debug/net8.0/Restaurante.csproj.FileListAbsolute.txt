@@ -12,3 +12,17 @@ C:\Users\gabri\Desktop\faculdade\Restaurante\Restaurante\obj\Debug\net8.0\refint
 C:\Users\gabri\Desktop\faculdade\Restaurante\Restaurante\obj\Debug\net8.0\Restaurante.pdb
 C:\Users\gabri\Desktop\faculdade\Restaurante\Restaurante\obj\Debug\net8.0\Restaurante.genruntimeconfig.cache
 C:\Users\gabri\Desktop\faculdade\Restaurante\Restaurante\obj\Debug\net8.0\ref\Restaurante.dll
+C:\Users\Gabriel\Downloads\restaurante-main\restaurante-main\Restaurante\Restaurante\obj\Debug\net8.0\Restaurante.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Gabriel\Downloads\restaurante-main\restaurante-main\Restaurante\Restaurante\obj\Debug\net8.0\Restaurante.AssemblyInfoInputs.cache
+C:\Users\Gabriel\Downloads\restaurante-main\restaurante-main\Restaurante\Restaurante\obj\Debug\net8.0\Restaurante.AssemblyInfo.cs
+C:\Users\Gabriel\Downloads\restaurante-main\restaurante-main\Restaurante\Restaurante\obj\Debug\net8.0\Restaurante.csproj.CoreCompileInputs.cache
+C:\Users\Gabriel\Downloads\restaurante-main\restaurante-main\Restaurante\Restaurante\obj\Debug\net8.0\Restaurante.dll
+C:\Users\Gabriel\Downloads\restaurante-main\restaurante-main\Restaurante\Restaurante\obj\Debug\net8.0\refint\Restaurante.dll
+C:\Users\Gabriel\Downloads\restaurante-main\restaurante-main\Restaurante\Restaurante\obj\Debug\net8.0\Restaurante.pdb
+C:\Users\Gabriel\Downloads\restaurante-main\restaurante-main\Restaurante\Restaurante\bin\Debug\net8.0\Restaurante.exe
+C:\Users\Gabriel\Downloads\restaurante-main\restaurante-main\Restaurante\Restaurante\bin\Debug\net8.0\Restaurante.deps.json
+C:\Users\Gabriel\Downloads\restaurante-main\restaurante-main\Restaurante\Restaurante\bin\Debug\net8.0\Restaurante.runtimeconfig.json
+C:\Users\Gabriel\Downloads\restaurante-main\restaurante-main\Restaurante\Restaurante\bin\Debug\net8.0\Restaurante.dll
+C:\Users\Gabriel\Downloads\restaurante-main\restaurante-main\Restaurante\Restaurante\bin\Debug\net8.0\Restaurante.pdb
+C:\Users\Gabriel\Downloads\restaurante-main\restaurante-main\Restaurante\Restaurante\obj\Debug\net8.0\Restaurante.genruntimeconfig.cache
+C:\Users\Gabriel\Downloads\restaurante-main\restaurante-main\Restaurante\Restaurante\obj\Debug\net8.0\ref\Restaurante.dll
